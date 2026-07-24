@@ -1,0 +1,36 @@
+{
+  "name": "@loppis/bids",
+  "version": "0.1.0",
+  "description": "loppis bidding backend ce app + its typed contract (import { BidsIface } from '@loppis/bids/iface'). Typed consumer of loppis.listings/1.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ce-net/loppis-bids.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    },
+    "./iface": {
+      "types": "./dist/iface.d.ts",
+      "import": "./dist/iface.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "smoke": "npm run build && node test/smoke.mjs",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ce-net/iface": "github:ce-net/ce-iface",
+    "@ce-net/sdk": "github:ce-net/ce-ts",
+    "@loppis/listings": "github:ce-net/loppis-listings"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}

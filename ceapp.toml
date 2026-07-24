@@ -1,0 +1,13 @@
+[app]
+name = "loppis-bids"
+version = "0.1.0"
+summary = "Secondhand-marketplace bidding backend: typed mesh service loppis.bids/1, typed consumer of loppis.listings/1"
+runtime = "script"
+provides = ["loppis.bids/1"]
+
+[script]
+interpreter = "node"
+entry = "dist/main.js"
+
+[daemon]
+enabled = true
