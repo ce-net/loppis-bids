@@ -22,7 +22,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "smoke": "npm run build && node test/smoke.mjs",
-    "prepare": "tsc -p tsconfig.json"
+    "prepare": "tsc -p tsconfig.json",
+    "bundle": "tsc -p tsconfig.json && esbuild dist/main.js --bundle --platform=node --format=esm --outfile=app.mjs --banner:js=\"import{createRequire}from 'node:module';const require=createRequire(import.meta.url);\""
   },
   "dependencies": {
     "@ce-net/iface": "github:ce-net/ce-iface",
@@ -31,7 +32,8 @@
   },
   "devDependencies": {
     "typescript": "^5.6.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.24.0"
   },
   "files": [
     "dist",

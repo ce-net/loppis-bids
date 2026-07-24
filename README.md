@@ -9,11 +9,18 @@ process, both directions typed: that is the all-ways shape.
 Contract: `src/iface.ts`, public as `@loppis/bids/iface`. Siblings:
 github.com/ce-net/loppis-listings, github.com/ce-net/loppis-web.
 
-## Run
+## Run (the ce-native way — one command)
 
 ```
-npm install && npm run build
-LOPPIS_OPEN=1 npm start          # needs ce start + a running loppis-listings
-npm run smoke                    # LIVE smoke over the real mesh (both daemons up)
+ce app install ./loppis-bids         # installs + supervises the daemon (needs ce start + loppis-listings)
 ```
-Ability gate `loppis:bid:place`: same Authorizer seam rules as loppis-listings.
+Committed `app.mjs` is the entry — no npm for operators. Deploy/configure/start/stop visually
+with loppis-deploy (github.com/ce-net/loppis-deploy). Ability gate `loppis:bid:place`: closed
+mode refuses until a verifier is wired; open mode (config.json/env) is dev-only.
+
+## Development
+
+```
+npm install && npm run bundle        # rebuild app.mjs (commit it)
+npm run smoke                        # LIVE smoke over the real mesh (both daemons up)
+```

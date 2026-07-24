@@ -7,7 +7,7 @@ provides = ["loppis.bids/1"]
 
 [script]
 interpreter = "node"
-entry = "dist/main.js"
+entry = "app.mjs"
 
 [daemon]
 enabled = true

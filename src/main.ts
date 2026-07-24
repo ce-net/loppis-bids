@@ -27,10 +27,18 @@ function persist(m: Map<string, Bid[]>): void {
   writeFileSync(DATA, JSON.stringify(Object.fromEntries(m), null, 2));
 }
 
+function isOpen(): boolean {
+  if (process.env.LOPPIS_OPEN === "1") return true;
+  try {
+    return (JSON.parse(readFileSync(join(dirname(DATA), "config.json"), "utf8")) as { open?: boolean }).open === true;
+  } catch {
+    return false;
+  }
+}
 function authorizer(): Authorizer {
-  if (process.env.LOPPIS_OPEN === "1") return allowAll();
+  if (isOpen()) return allowAll();
   return ({ ability }) => {
-    console.warn(`[loppis-bids] denying ability-gated call (${ability}): no verifier wired (set LOPPIS_OPEN=1 for dev)`);
+    console.warn(`[loppis-bids] denying ability-gated call (${ability}): closed mode, no verifier wired`);
     return false;
   };
 }
