@@ -24,3 +24,10 @@ mode refuses until a verifier is wired; open mode (config.json/env) is dev-only.
 npm install && npm run bundle        # rebuild app.mjs (commit it)
 npm run smoke                        # LIVE smoke over the real mesh (both daemons up)
 ```
+
+## Why CE (for web developers)
+
+This service has no login system, no session store, and no websocket infra — callers are
+authenticated peers, authorization is an ability IN the API schema, and the events it emits
+reach every subscriber live. The full argument and the demo walkthrough:
+github.com/ce-net/loppis-web and docs/why-web-developers.md in github.com/ce-net/ce.
