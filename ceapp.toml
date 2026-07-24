@@ -6,8 +6,8 @@ runtime = "script"
 provides = ["loppis.bids/1"]
 
 [script]
-interpreter = "node"
-entry = "app.mjs"
+interpreter = "sh"
+entry = "run.sh"
 
 [daemon]
 enabled = true

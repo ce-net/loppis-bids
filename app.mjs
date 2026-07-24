@@ -2118,6 +2118,7 @@ var ListingsIface = defineInterface({
 // dist/main.js
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
 // dist/iface.js
@@ -2157,7 +2158,8 @@ var BidsIface = defineInterface({
 });
 
 // dist/main.js
-var DATA = process.env.LOPPIS_DATA ?? join(process.cwd(), "data", "bids.json");
+var STATE_DIR = process.env.LOPPIS_STATE ?? join(homedir(), ".local", "share", "loppis-bids");
+var DATA = join(STATE_DIR, "bids.json");
 function load() {
   try {
     return new Map(Object.entries(JSON.parse(readFileSync(DATA, "utf8"))));
@@ -2179,15 +2181,37 @@ function isOpen() {
   }
 }
 function authorizer() {
-  if (isOpen())
-    return allowAll();
-  return ({ ability }) => {
-    console.warn(`[loppis-bids] denying ability-gated call (${ability}): closed mode, no verifier wired`);
-    return false;
+  const dev = allowAll();
+  return (q) => {
+    if (isOpen())
+      return dev(q);
+    const { ability } = q;
+    return (() => {
+      console.warn(`[loppis-bids] denying ability-gated call (${ability}): closed mode, no verifier wired`);
+      return false;
+    })();
   };
 }
 var byListing = load();
 var highestOf = (listingId) => byListing.get(listingId)?.[0] ?? null;
+function singleton(dirPath) {
+  const lock = join(dirPath, "daemon.pid");
+  try {
+    const other = Number(readFileSync(lock, "utf8"));
+    if (other > 0) {
+      try {
+        process.kill(other, 0);
+        console.log(`another instance (pid ${other}) is live \u2014 exiting`);
+        process.exit(0);
+      } catch {
+      }
+    }
+  } catch {
+  }
+  mkdirSync(dirPath, { recursive: true });
+  writeFileSync(lock, String(process.pid));
+}
+singleton(STATE_DIR);
 var ce = CeClient.local();
 var ac = new AbortController();
 process.on("SIGINT", () => ac.abort());

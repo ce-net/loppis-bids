@@ -10,10 +10,14 @@ import { allowAll, connect, provide, CallError, type Authorizer, type Client } f
 import { ListingsIface } from "@loppis/listings/iface";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { BidsIface, type Bid } from "./iface.js";
 
-const DATA = process.env.LOPPIS_DATA ?? join(process.cwd(), "data", "bids.json");
+// State lives OUTSIDE the install dir: `ce app install` replaces the whole versioned app
+// dir on every deploy, so anything kept in it (store, config) would be wiped by upgrades.
+const STATE_DIR = process.env.LOPPIS_STATE ?? join(homedir(), ".local", "share", "loppis-bids");
+const DATA = join(STATE_DIR, "bids.json");
 
 function load(): Map<string, Bid[]> {
   try {
@@ -36,15 +40,41 @@ function isOpen(): boolean {
   }
 }
 function authorizer(): Authorizer {
-  if (isOpen()) return allowAll();
-  return ({ ability }) => {
+  // Mode is read PER CALL so loppis-deploy's toggle applies LIVE — no restart needed.
+  const dev = allowAll();
+  return (q) => {
+    if (isOpen()) return dev(q);
+    const { ability } = q;
+    return (() => {
     console.warn(`[loppis-bids] denying ability-gated call (${ability}): closed mode, no verifier wired`);
-    return false;
+      return false;
+    })();
   };
 }
 
 const byListing = load();
 const highestOf = (listingId: string): Bid | null => byListing.get(listingId)?.[0] ?? null;
+
+
+// Singleton guard: multiple supervisors (node install-spawn + a daemon runner) can race to
+// spawn this app; duplicates would both serve the topic and race replies. First one wins.
+function singleton(dirPath: string): void {
+  const lock = join(dirPath, "daemon.pid");
+  try {
+    const other = Number(readFileSync(lock, "utf8"));
+    if (other > 0) {
+      try {
+        process.kill(other, 0);
+        console.log(`another instance (pid ${other}) is live — exiting`);
+        process.exit(0);
+      } catch { /* stale lock */ }
+    }
+  } catch { /* no lock */ }
+  mkdirSync(dirPath, { recursive: true });
+  writeFileSync(lock, String(process.pid));
+}
+
+singleton(STATE_DIR);
 
 const ce = CeClient.local();
 const ac = new AbortController();
